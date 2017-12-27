@@ -82,6 +82,7 @@ module Elastic::Core
 
       write_index, rolling_index = write_indices
 
+
       operations = [{ 'delete' => _document.merge('_index' => write_index) }]
 
       if rolling_index
@@ -91,6 +92,29 @@ module Elastic::Core
             'data' => { '_mark_for_deletion' => true }
           )
         }
+      end
+
+      api.bulk(body: operations)
+    end
+
+    def delete_documents(_collection)
+      return if Elastic.config.disable_indexing
+
+      write_index, rolling_index = write_indices
+
+      operations = []
+
+      _collection.each do |_document|
+        operations << { 'delete': _document.merge('_index': write_index) }
+
+        if rolling_index
+          operations << {
+            'index' => _document.merge(
+              '_index' => rolling_index,
+              'data' => { '_mark_for_deletion' => true }
+            )
+          }
+        end
       end
 
       api.bulk(body: operations)

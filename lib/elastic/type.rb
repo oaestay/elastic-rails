@@ -87,6 +87,13 @@ module Elastic
       self
     end
 
+    def self.delete_documents(_collection)
+      connector.delete_documents _collection.map do |_object|
+        new(_object).as_elastic_document(only_meta: true)
+      end
+      self
+    end
+
     def self.query
       Query.new self
     end
